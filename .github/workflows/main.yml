@@ -43,7 +43,7 @@ jobs:
       
       - name: Run Fortify Scan
         run: |
-          scancentral package -bt none -o package.zip 
+          scancentral package -bt none -o package.zip -exclude node_modules -exclude **/package.json
           fcli sc-sast scan start -f package.zip --publish-to $env:FORTIFY_VERID --store x
           fcli sc-sast scan wait-for ::x::jobToken --on-failure-state=terminate
       
