@@ -7,18 +7,23 @@ jobs:
   Scan_Debricked:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
     steps:    
       - name: Check out source code
         uses: actions/checkout@v4  
       - name: Run ScanCentral SAST & Debricked scan
         uses: fortify/github-action@v2
         with:
-          sast-scan: true
+          # sast-scan: true
           debricked-sca-scan: true
         env:
-          SSC_URL: ${{vars.SSC_URL}}
-          SSC_TOKEN: ${{secrets.SSC_TOKEN}}
-          SC_SAST_TOKEN: ${{secrets.SC_SAST_CLIENT_AUTH_TOKEN}}
+          # SSC_URL: ${{vars.SSC_URL}}
+          # SSC_TOKEN: ${{secrets.SSC_TOKEN}}
+          # SC_SAST_TOKEN: ${{secrets.SC_SAST_CLIENT_AUTH_TOKEN}}
           # SSC_LOGIN_EXTRA_OPTS: --socket-timeout=60s
           DEBRICKED_TOKEN: ${{secrets.DEBRICKED_TOKEN}}
           # SSC_APPVERSION: MyApp:MyVersion
@@ -37,10 +42,10 @@ jobs:
           # DO_JOB_SUMMARY: true
           # JOB_SUMMARY_ACTION: https://scm.my.org/shared-repos/fcli-actions/job-summary.yaml
           # JOB_SUMMARY_EXTRA_OPTS: --on-unsigned=ignore
-          # DO_PR_COMMENT: true
+          DO_PR_COMMENT: true
           # PR_COMMENT_ACTION: https://scm.my.org/shared-repos/fcli-actions/github-pr-comment.yaml
           # PR_COMMENT_EXTRA_OPTS: --on-unsigned=ignore
-          # DO_EXPORT: true
+          DO_EXPORT: true
           # EXPORT_ACTION: https://scm.my.org/shared-repos/fcli-actions/github-sast-report.yaml
           # EXPORT_EXTRA_OPTS: --on-unsigned=ignore
           # TOOL_DEFINITIONS: https://ftfy.mycompany.com/tool-definitions/v1/tool-definitions.yaml.zip
