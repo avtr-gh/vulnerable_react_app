@@ -1,84 +1,15 @@
-name: Scan-powershell
+name: scan Fortify-Debricked
 
 on:
   workflow_dispatch:
 
-jobs:
-  Scan_Fortify:
-    runs-on:
-      group: Fortify
-    env:
-      FORTIFY_SSC_URL: ${{ vars.FORTIFY_SSC_URL }}
-      FORTIFY_SC_URL: ${{ vars.FORTIFY_SC_URL }}
-      FORTIFY_BUILD: ${{ vars.FORTIFY_BUILD }}
-      FORTIFY_VERID: ${{ vars.FORTIFY_VERID }}
-    
-    permissions:
-      contents: read
-      security-events: write
+jobs:  
+  Scan_Debricked:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Mark workspace as safe for Git
-        shell: powershell
-        run: |
-          git config --global --add safe.directory "${{ github.workspace }}"
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: LogIn Fortify SSC and SC-SAST
-        run: |
-          Write-Host "Logging in to Fortify SSC and SC-SAST"
-          fcli config truststore set -f="C:\Program Files\Java\jdk-17\lib\security\cacerts"
-          fcli ssc session login --url $env:FORTIFY_SSC_URL --user $env:FORTIFY_SSC_USER --password $env:FORTIFY_SSC_PASS --sc-sast-url $env:FORTIFY_SC_URL -c $env:FORTIFY_CLIENT_AUTH_TOKEN --disable sc-dast
+      - uses: actions/checkout@v3
+      - uses: debricked/actions@v3
         env:
-          FORTIFY_SSC_USER: ${{ secrets.FORTIFY_SSC_USER }}
-          FORTIFY_SSC_PASS: ${{ secrets.FORTIFY_SSC_PASS }}
-          FORTIFY_CLIENT_AUTH_TOKEN: ${{ secrets.FORTIFY_CLIENT_AUTH_TOKEN }}  
-        shell: powershell
-
-      - name: Create Application
-        run: |
-          fcli ssc appversion create $env:FORTIFY_VERID --auto-required-attrs --skip-if-exists --issue-template "Prioritized High Risk Issue Template"
-      
-      - name: Run Fortify Scan
-        run: |
-          scancentral package -bt none -o package.zip -exclude node_modules -exclude **/package.json
-          fcli sc-sast scan start -f package.zip --publish-to $env:FORTIFY_VERID --store x
-          fcli sc-sast scan wait-for ::x::jobToken --on-failure-state=terminate
-      
-      - name: Approve Artifact
-        run: | 
-          $artifactId = (fcli ssc artifact list --av=$env:FORTIFY_VERID --output=json | ConvertFrom-Json)[0].id
-          
-          echo "ARTIFACT_ID=$artifactId" >> $env:GITHUB_ENV
-          
-          fcli ssc artifact approve $artifactId
-        shell: powershell
-
-      - name: Download Fortify Report
-        run: |
-          Write-Host "Downloading Fortify Report for Artifact ID: ${{env.ARTIFACT_ID}}"
-          fcli ssc artifact download ${{env.ARTIFACT_ID}} -f ${{env.FORTIFY_BUILD}}.fpr
-          
-      - name: Upload FPR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fortify-fpr
-          path: ${{vars.FORTIFY_BUILD}}.fpr
-      - name: Run Github-SAST-Report
-        run: |
-          fcli ssc action run github-sast-report --appversion $env:FORTIFY_VERID --file ${{env.FORTIFY_BUILD}}.fpr.sarif
-
-      - name: Upload Sarif Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fortify-fpr-sarif
-          path: ${{vars.FORTIFY_BUILD}}.fpr.sarif
-
-      - name: Upload SARIF File
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{vars.FORTIFY_BUILD}}.fpr.sarif
-          category: Fortify
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
           
