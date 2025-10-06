@@ -1,4 +1,4 @@
-name: scan Fortify-Debricked
+name: scan Fortify
 
 on:
   workflow_dispatch:
