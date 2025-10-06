@@ -1,0 +1,15 @@
+name: scan Debricked
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Scan_Debricked:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: debricked/actions@v3
+        env:
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+          
